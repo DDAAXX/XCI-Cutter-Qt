@@ -269,7 +269,7 @@ Window {
 
                 disableButtons()
 
-                worker.processClicked(Worker.PROCESS, lbl_Source,lbl_Dest, rb_Cut.checked ? checkBox.checked ? Worker.CUT_SPLIT : Worker.CUT : Worker.JOIN)
+                worker.processClicked(Worker.PROCESS, rb_Cut.checked ? checkBox.checked ? Worker.CUT_SPLIT : Worker.CUT : Worker.JOIN)
             }
             else
             {

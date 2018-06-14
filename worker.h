@@ -33,7 +33,7 @@ public:
 signals:
 
 public slots:
-    void processClicked(ButtonType btn, QString src = "", QString dest = "", ActionType action = NO_ACT);
+    void processClicked(ButtonType btn, ActionType action = NO_ACT);
     void setSource(QString src);
     void setDest(QString dst){m_DestFolder = dst;}
     bool isSrcDstSet(){return (m_SourcePath.isEmpty() == false && m_DestFolder.isEmpty() == false);}
@@ -41,7 +41,7 @@ public slots:
     void dataAvailable();
 
 private:
-    void executeWork();
+    void executeWork(ActionType act);
     QString m_SourcePath;
     QString m_DestFolder;
 

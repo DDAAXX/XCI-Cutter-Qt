@@ -18,9 +18,9 @@ Worker::Worker(QObject *qmlObj, QObject *parent) : QObject(parent)
  * \param dest
  * \param action
  */
-void Worker::processClicked(ButtonType btn, QString src, QString dest, ActionType action)
+void Worker::processClicked(ButtonType btn, ActionType action)
 {
-    qDebug()<<"clicked"<<btn;
+    qDebug()<<"clicked"<<btn<<action;
 
     switch (btn) {
     case BATCH:
@@ -31,7 +31,7 @@ void Worker::processClicked(ButtonType btn, QString src, QString dest, ActionTyp
         break;
     case PROCESS:
         //do the work
-        executeWork();
+        executeWork(action);
         break;
     case QUIT:
         m_QuitPending = true;
@@ -70,115 +70,136 @@ void Worker::dataAvailable()
     }
 }
 
-void Worker::executeWork()
+void Worker::executeWork(ActionType act)
 {
     quint64 i, chunks, remainder;
     QByteArray pad_check;
     QByteArray test;
     QByteArray pad_remainder;
-
     bool error = false;
-    pad_check.resize(100*1024*1024);
-    pad_check.fill(0xff);
+    bool split4GB = false;
 
-    if (m_SourceFile->getDataSize() == m_SourceFile->getRealFileSize())
-    {
-        qDebug()<<"ROM is already trimmed";
+    switch (act) {
+    case CUT_SPLIT:
 
-        QMetaObject::invokeMethod(qmlObject, "setMsgBox",
-                                  Q_ARG(QVariant,"ROM is already trimmed!")
-                                  );
+        split4GB = true;
 
-        QMetaObject::invokeMethod(qmlObject, "abortOp",
-                Q_ARG(QVariant,false)
-                );
+    case CUT:
+        //Verify xci file
+        pad_check.resize(100*1024*1024);
+        pad_check.fill(0xff);
 
-        return;
-    }
-
-    i = (m_SourceFile->getRealCartSize() - m_SourceFile->getDataSize());
-    chunks = int(i/(100 * 1024 * 1024));
-    remainder = i - (chunks * (100 * 1024 * 1024));
-    pad_remainder.resize(remainder);
-    pad_remainder.fill(0xff);
-
-    m_SourceFile->OpenReader();
-    m_SourceFile->setInPos(m_SourceFile->getDataSize());
-
-    qDebug()<< m_SourceFile->getRealCartSize() << m_SourceFile->getDataSize();
-    qDebug()<< chunks;
-
-    QMetaObject::invokeMethod(qmlObject, "setProgessMax",
-                              Q_ARG(QVariant,chunks*2)
-                              );
-
-    for (quint64 y = 0; y < chunks; y++)
-    {
-        if (m_QuitPending)
+        if (m_SourceFile->getDataSize() == m_SourceFile->getRealFileSize())
         {
-            m_QuitPending = false;
+            qDebug()<<"ROM is already trimmed";
+
+            QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                      Q_ARG(QVariant,"ROM is already trimmed!")
+                                      );
+
+            QMetaObject::invokeMethod(qmlObject, "abortOp",
+                                      Q_ARG(QVariant,false)
+                                      );
+
             return;
         }
 
-        QMetaObject::invokeMethod(qmlObject, "setProgessVal",
-                                  Q_ARG(QVariant,y)
+        i = (m_SourceFile->getRealCartSize() - m_SourceFile->getDataSize());
+        chunks = int(i/(100 * 1024 * 1024));
+        remainder = i - (chunks * (100 * 1024 * 1024));
+        pad_remainder.resize(remainder);
+        pad_remainder.fill(0xff);
+
+        m_SourceFile->OpenReader();
+        m_SourceFile->setInPos(m_SourceFile->getDataSize());
+
+        //qDebug()<< m_SourceFile->getRealCartSize() << m_SourceFile->getDataSize();
+        //qDebug()<< chunks;
+
+        //Verify free space
+        QMetaObject::invokeMethod(qmlObject, "setProgessMax",
+                                  Q_ARG(QVariant,chunks*2)
                                   );
-        qApp->processEvents();
-        test.resize(pad_check.length());
-        m_SourceFile->InfileStream->read(test.data(),test.length());
-        m_SourceFile->setInPos(m_SourceFile->getDataSize() + ((y+1) * pad_check.length()));
 
-        if (test != pad_check)
+        for (quint64 y = 0; y < chunks; y++)
         {
-            error = true;
-            break;
-        }
-    }
+            if (m_QuitPending)
+            {
+                m_QuitPending = false;
+                return;
+            }
 
-    if (!error)
-    {
-        test.resize(pad_remainder.length());
-        m_SourceFile->InfileStream->read(test.data(),test.length());
-        //qDebug()<<test;
-        if (test != pad_remainder)
+            QMetaObject::invokeMethod(qmlObject, "setProgessVal",
+                                      Q_ARG(QVariant,y)
+                                      );
+            qApp->processEvents();
+            test.resize(pad_check.length());
+            m_SourceFile->InfileStream->read(test.data(),test.length());
+            m_SourceFile->setInPos(m_SourceFile->getDataSize() + ((y+1) * pad_check.length()));
+
+            if (test != pad_check)
+            {
+                error = true;
+                break;
+            }
+        }
+
+        if (!error)
         {
-            error = true;
+            test.resize(pad_remainder.length());
+            m_SourceFile->InfileStream->read(test.data(),test.length());
+            //qDebug()<<test;
+            if (test != pad_remainder)
+            {
+                error = true;
+            }
         }
-    }
 
-    if (error)
-    {
-        qDebug()<<"Found used space after gamedata! Aborting!";
-        QMetaObject::invokeMethod(qmlObject, "setMsgBox",
-                                  Q_ARG(QVariant,"Found used space after gamedata! Aborting!")
-                                  );
-        QMetaObject::invokeMethod(qmlObject, "abortOp",
-                Q_ARG(QVariant,false)
-                );
-    }
-    else
-    {
-        qDebug()<<"Ready to cut!";
-        QMetaObject::invokeMethod(qmlObject, "setMsgBox",
-                                  Q_ARG(QVariant,"Ready to cut! Please wait...")
-                                  );
-        qApp->processEvents();
-
-        QString filename = m_SourceFile->InfileStream->fileName();
-        int slashPos = filename.lastIndexOf("/");
-        filename = filename.mid(slashPos+1);
-        filename.chop(4);
-        QString newNamePath = m_DestFolder.append("/").append(filename).append("_trimmed.xci");
-
-        QFile out(newNamePath);
-
-        if(out.open(QIODevice::WriteOnly))
+        if (error)
         {
-            out.write((char*) m_SourceFile->InfileStream->map(0, m_SourceFile->getDataSize()), m_SourceFile->getDataSize()); //Copies all data
-
-            out.close();
-
-            QMetaObject::invokeMethod(qmlObject, "endProcess");
+            qDebug()<<"Found used space after gamedata! Aborting!";
+            QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                      Q_ARG(QVariant,"Found used space after gamedata! Aborting!")
+                                      );
+            QMetaObject::invokeMethod(qmlObject, "abortOp",
+                                      Q_ARG(QVariant,false)
+                                      );
         }
+        else
+        {
+            //Cut
+            qDebug()<<"Ready to cut!";
+            QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                      Q_ARG(QVariant,"Ready to cut! Please wait...")
+                                      );
+            qApp->processEvents();
+
+            QString filename = m_SourceFile->InfileStream->fileName();
+            int slashPos = filename.lastIndexOf("/");
+            filename = filename.mid(slashPos+1);
+            filename.chop(4);
+            QString newNamePath = m_DestFolder.append("/").append(filename).append("_trimmed.xci");
+
+            //TODO: manage image split 4GB if split4GB set
+
+            QFile out(newNamePath);
+
+            if(out.open(QIODevice::WriteOnly))
+            {
+                out.write((char*) m_SourceFile->InfileStream->map(0, m_SourceFile->getDataSize()), m_SourceFile->getDataSize()); //Copies all data
+
+                out.close();
+
+                QMetaObject::invokeMethod(qmlObject, "endProcess");
+            }
+        }
+
+
+        break;
+    case JOIN:
+        //TODO
+        break;
+    default:
+        break;
     }
 }
