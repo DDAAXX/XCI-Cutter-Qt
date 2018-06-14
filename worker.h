@@ -6,6 +6,8 @@
 
 #include "xcifile.h"
 
+#define _4GBFILE 4294967290
+
 class Worker : public QObject
 {
     Q_OBJECT
@@ -43,6 +45,8 @@ public slots:
 
 private:
     void executeWork(ActionType act);
+    void createFile(QFile *src, quint64 dataSize, qint8 numFiles = 1);
+
     QString m_SourcePath;
     QString m_DestFolder;
 

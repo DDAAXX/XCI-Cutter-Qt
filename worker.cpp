@@ -12,6 +12,8 @@ Worker::Worker(QObject *qmlObj, QObject *parent) : QObject(parent)
 
     m_QuitPending = false;
     m_CheckFreeSpace = true;
+
+    //qDebug()<<_4GBFILE;
 }
 
 /*!
@@ -69,6 +71,11 @@ void Worker::dataAvailable()
     {
         qDebug()<<"ROM is improperly trimmed or padded. Aborting";
         m_SourceFile = new XCIFile();
+    }
+
+    if (m_SourceFile->getDataSize() > _4GBFILE)
+    {
+        qDebug()<<"Data dimension:"<<m_SourceFile->getDataSize()<<"For FAT32, split the file also";
     }
 }
 
@@ -193,62 +200,32 @@ void Worker::executeWork(ActionType act)
             int slashPos = filename.lastIndexOf("/");
             filename = filename.mid(slashPos+1);
             filename.chop(4);
-            QString newNamePath = m_DestFolder.append("/").append(filename).append("_trimmed.xci");
 
-            //TODO: manage image split 4GB if split4GB set
-
-            out = new QFile(newNamePath);
-
-            if(out->open(QIODevice::WriteOnly))
+            if (split4GB && m_SourceFile->getDataSize() > _4GBFILE)
             {
-                qDebug()<<m_SourceFile->getDataSize();
-
-                quint64 wChunks = m_SourceFile->getDataSize() / ChunkSize;
-                quint64 remain = m_SourceFile->getDataSize() - (ChunkSize * wChunks);
-
-                QMetaObject::invokeMethod(qmlObject, "setProgessMax",
-                                          Q_ARG(QVariant,wChunks)
+                QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                          Q_ARG(QVariant,"Trimming and Splitting file... Please wait...")
                                           );
 
-                quint64 x;
-                for (x = 0; x < wChunks; x++)
-                {
-                    if (m_QuitPending)
-                    {
-                        m_QuitPending = false;
-
-                        out->close();
-                        out->remove();
-
-                        out->deleteLater();
-
-                        return;
-                    }
-
-                    out->write((char*) m_SourceFile->InfileStream->map(0 + (x*ChunkSize), ChunkSize), ChunkSize); //Copies all data
-                    QMetaObject::invokeMethod(qmlObject, "setProgessVal",
-                                              Q_ARG(QVariant,x)
-                                              );
+                int a = 5;
+                while (a > 0) {
+                    a--;
                     qApp->processEvents();
+                    QThread::msleep(100);
                 }
 
-                out->write((char*) m_SourceFile->InfileStream->map(0 + (x*ChunkSize), remain), remain); //Copies all data
+                int numFiles = m_SourceFile->getDataSize() / _4GBFILE;
 
-                out->close();
+                if (m_SourceFile->getDataSize() - (numFiles * _4GBFILE) > 0)
+                {
+                    numFiles++;
+                }
 
-                out->deleteLater();
-
-                QMetaObject::invokeMethod(qmlObject, "endProcess");
+                createFile(m_SourceFile->InfileStream, m_SourceFile->getDataSize(), numFiles);
             }
             else
             {
-                qDebug()<<"unable to open file";
-                QMetaObject::invokeMethod(qmlObject, "setMsgBox",
-                                          Q_ARG(QVariant,"unable to open destination file!")
-                                          );
-                QMetaObject::invokeMethod(qmlObject, "abortOp",
-                                          Q_ARG(QVariant,false)
-                                          );
+                createFile(m_SourceFile->InfileStream, m_SourceFile->getDataSize());
             }
         }
 
@@ -259,5 +236,106 @@ void Worker::executeWork(ActionType act)
         break;
     default:
         break;
+    }
+}
+
+void Worker::createFile(QFile *src, quint64 dataSize, qint8 numFiles)
+{
+    // File open a success
+    if (src->isOpen() || src->open(QIODevice::ReadOnly)) {
+        QString destName = src->fileName();
+        destName.chop(4);
+
+        if (numFiles == 1)
+        {
+            destName.append("_trimmed.xci");
+        }
+        else
+        {
+            destName.append("_trimmed.xc");
+        }
+
+        for (int i = 0; i < numFiles; i++)
+        {
+            QFile out;
+            if (numFiles > 1)
+            {
+                out.setFileName(QString("%1%2").arg(destName).arg(i));
+            }
+            else
+            {
+                out.setFileName(destName);
+            }
+
+            if (out.open(QIODevice::WriteOnly))
+            {
+                qint64 sz;
+                if (numFiles > 1)
+                {
+                    if ((qint64)dataSize - (_4GBFILE * (i+1)) > 0)
+                    {
+                        sz = _4GBFILE;
+                    }
+                    else
+                    {
+                        sz = dataSize - (_4GBFILE * (i));
+                    }
+                }
+                else
+                {
+                    sz = dataSize;
+                }
+                qDebug()<<dataSize<<sz;
+                //continue; test, skip write
+
+                quint64 chunkWrite = (sz/ChunkSize);
+                quint64 remain = (sz - (chunkWrite * ChunkSize));
+                quint64 ii;
+
+                QMetaObject::invokeMethod(qmlObject, "setProgessMax",
+                                          Q_ARG(QVariant,chunkWrite)
+                                          );
+
+                for (ii = 0; ii < chunkWrite; ii++)
+                {
+                    if (m_QuitPending)
+                    {
+                        m_QuitPending = false;
+
+                        out.close();
+
+                        return;
+                    }
+
+                    out.write((char*) src->map(0 + (_4GBFILE * i) + (ii*ChunkSize), ChunkSize), ChunkSize); //Copies all data
+                    QMetaObject::invokeMethod(qmlObject, "setProgessVal",
+                                              Q_ARG(QVariant,ii)
+                                              );
+                    qApp->processEvents();
+                }
+
+                if (remain > 0)
+                {
+                    out.write((char*) src->map(0 + (ii*ChunkSize), remain), remain); //Copies all data
+                }
+
+                out.close();
+            }
+            else
+            {
+                qDebug()<<"unable to open file";
+                QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                          Q_ARG(QVariant,"unable to open destination file!")
+                                          );
+                QMetaObject::invokeMethod(qmlObject, "abortOp",
+                                          Q_ARG(QVariant,false)
+                                          );
+                return;
+            }
+        }
+
+        QMetaObject::invokeMethod(qmlObject, "endProcess");
+
+        src->close();
     }
 }

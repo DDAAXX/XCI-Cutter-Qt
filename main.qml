@@ -16,7 +16,7 @@ Window {
     maximumHeight: 330
     minimumWidth: 640
     maximumWidth: 640
-    title: qsTr("XCI Cutter")
+    title: qsTr("XCI Cutter v.0.2.alpha")
 
     Button {
         id: btn_Batch
@@ -293,11 +293,10 @@ Window {
         id: checkBox
         x: 215
         y: 51
-        text: qsTr("Split to 4GB parts (TODO)")
+        text: qsTr("Split to 4GB parts")
         Layout.fillWidth: true
         Layout.preferredHeight: 21
         Layout.preferredWidth: 168
-        enabled: false
     }
 
     RowLayout {
@@ -407,6 +406,7 @@ Window {
         btn_Dest.enabled = false
         btn_Exit.enabled = false
         checkFreeSpace.enabled = false
+        checkBox.enabled = false
     }
 
     function enableButtons()
@@ -415,6 +415,7 @@ Window {
         btn_Dest.enabled = true
         btn_Exit.enabled = true
         checkFreeSpace.enabled = true
+        checkBox.enabled = rb_Cut.checked
     }
 
     function endProcess()
