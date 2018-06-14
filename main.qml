@@ -82,7 +82,7 @@ Window {
 
             btn_Process.enabled = (lbl_Source.text != "..." && lbl_Dest.text != "...")
 
-            abortOp()
+            abortOp(true)
         }
         onRejected: {
             console.log("Canceled")
@@ -275,7 +275,7 @@ Window {
             {
                 worker.processClicked(Worker.QUIT)
 
-                abortOp()
+                abortOp(true)
             }
         }
     }
@@ -370,10 +370,13 @@ Window {
         msgBox.text = val
     }
 
-    function abortOp()
+    function abortOp(resetMsgBox)
     {
         btn_Process.text = "PROCESS"
-        msgBox.text = ""
+
+        if (resetMsgBox)
+            msgBox.text = ""
+
         progressBar.value = 0
 
         enableButtons()

@@ -84,6 +84,15 @@ void Worker::executeWork()
     if (m_SourceFile->getDataSize() == m_SourceFile->getRealFileSize())
     {
         qDebug()<<"ROM is already trimmed";
+
+        QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                  Q_ARG(QVariant,"ROM is already trimmed!")
+                                  );
+
+        QMetaObject::invokeMethod(qmlObject, "abortOp",
+                Q_ARG(QVariant,false)
+                );
+
         return;
     }
 
@@ -143,7 +152,9 @@ void Worker::executeWork()
         QMetaObject::invokeMethod(qmlObject, "setMsgBox",
                                   Q_ARG(QVariant,"Found used space after gamedata! Aborting!")
                                   );
-        QMetaObject::invokeMethod(qmlObject, "abortOp");
+        QMetaObject::invokeMethod(qmlObject, "abortOp",
+                Q_ARG(QVariant,false)
+                );
     }
     else
     {
@@ -151,6 +162,7 @@ void Worker::executeWork()
         QMetaObject::invokeMethod(qmlObject, "setMsgBox",
                                   Q_ARG(QVariant,"Ready to cut! Please wait...")
                                   );
+        qApp->processEvents();
 
         QString filename = m_SourceFile->InfileStream->fileName();
         int slashPos = filename.lastIndexOf("/");
