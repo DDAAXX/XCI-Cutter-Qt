@@ -289,6 +289,17 @@ Window {
         value: 0
     }
 
+    CheckBox {
+        id: checkBox
+        x: 215
+        y: 51
+        text: qsTr("Split to 4GB parts (TODO)")
+        Layout.fillWidth: true
+        Layout.preferredHeight: 21
+        Layout.preferredWidth: 168
+        enabled: false
+    }
+
     RowLayout {
         x: 10
         y: 24
@@ -324,15 +335,6 @@ Window {
                 }
             }
         }
-
-        CheckBox {
-            id: checkBox
-            text: qsTr("Split to 4GB parts (TODO)")
-            Layout.fillWidth: true
-            Layout.preferredHeight: 21
-            Layout.preferredWidth: 168
-            enabled: false
-        }
     }
 
     Label {
@@ -344,6 +346,23 @@ Window {
         text: qsTr("")
         horizontalAlignment: Text.AlignHCenter
     }
+
+    CheckBox {
+        id: checkFreeSpace
+        x: 10
+        y: 51
+        text: qsTr("Check free space before cut")
+        checked: true
+        Layout.preferredWidth: 168
+        Layout.preferredHeight: 21
+        Layout.fillWidth: true
+        enabled: true
+
+        onCheckedChanged: {
+            worker.setCheckFreeSpace(checked)
+        }
+    }
+
 
     function getData(a,b,c)
     {
@@ -387,6 +406,7 @@ Window {
         btn_Source.enabled = false
         btn_Dest.enabled = false
         btn_Exit.enabled = false
+        checkFreeSpace.enabled = false
     }
 
     function enableButtons()
@@ -394,6 +414,7 @@ Window {
         btn_Source.enabled = true
         btn_Dest.enabled = true
         btn_Exit.enabled = true
+        checkFreeSpace.enabled = true
     }
 
     function endProcess()

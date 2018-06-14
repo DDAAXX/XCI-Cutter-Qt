@@ -87,11 +87,12 @@ void XCIFile::ReadSizes()
         QByteArray test(dataSizeArray);
 
         quint32 ds = qFromLittleEndian<quint32>(test.data());
+        //qDebug()<<ds;
 
-        pDataSize = 512 + (ds * 512);
-        pChunkCount = pDataSize / ChunkSize + 1;
+        pDataSize = 512 + ((quint64)ds * 512);
+        pChunkCount = (pDataSize / ChunkSize) + 1;
 
-        qDebug()<<pDataSize<<pChunkCount;
+        qDebug()<<pDataSize<<ChunkSize<<pChunkCount;
 
         pRealfileSize = QFile(pInPath).size();
         qDebug()<<pRealfileSize;

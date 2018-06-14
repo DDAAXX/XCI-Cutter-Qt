@@ -37,6 +37,7 @@ public slots:
     void setSource(QString src);
     void setDest(QString dst){m_DestFolder = dst;}
     bool isSrcDstSet(){return (m_SourcePath.isEmpty() == false && m_DestFolder.isEmpty() == false);}
+    void setCheckFreeSpace(bool val) {m_CheckFreeSpace = val;}
 
     void dataAvailable();
 
@@ -49,6 +50,9 @@ private:
 
     QObject * qmlObject;
     bool m_QuitPending;
+    bool m_CheckFreeSpace;
+
+    QFile *out;
 };
 
 Q_DECLARE_METATYPE(Worker::ActionType)
