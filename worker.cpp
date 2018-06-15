@@ -316,7 +316,7 @@ void Worker::createFile(QFile *src, quint64 dataSize, qint8 numFiles)
 
                 if (remain > 0)
                 {
-                    out.write((char*) src->map(0 + (ii*ChunkSize), remain), remain); //Copies all data
+                    out.write((char*) src->map(0 + (_4GBFILE * i) + (ii*ChunkSize), remain), remain); //Copies all data
                 }
 
                 out.close();
