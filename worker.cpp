@@ -244,7 +244,10 @@ void Worker::createFile(QFile *src, quint64 dataSize, qint8 numFiles)
     // File open a success
     if (src->isOpen() || src->open(QIODevice::ReadOnly)) {
         QString destName = src->fileName();
+        destName = m_DestFolder + destName.mid(destName.lastIndexOf("/"));
         destName.chop(4);
+
+        qDebug() << destName;
 
         if (numFiles == 1)
         {

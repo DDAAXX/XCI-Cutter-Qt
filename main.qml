@@ -141,6 +141,7 @@ Window {
         width: 409
         height: 40
         text: qsTr("...")
+        clip: true
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
     }
@@ -152,6 +153,7 @@ Window {
         width: 409
         height: 40
         text: qsTr("...")
+        clip: true
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
     }
