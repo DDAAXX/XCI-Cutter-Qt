@@ -1,1 +1,1 @@
-COPY DEPLOY CONTENT TO XCI-CUTTER.APP/CONTENTS PACKAGE
+not working libraries... ignore them
