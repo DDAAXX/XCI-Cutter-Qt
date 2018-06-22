@@ -5,3 +5,5 @@ Starting from https://github.com/Destiny1984/XCI-Cutter , I decided to port the 
 At the moment this is an ALFA version, with only the cut function available (all the sanity checks implemented and no mod to original image).
 
 To generate app redistributable, use command: /path/to/macdeployqt XCICutter.app  -verbose=3 -dmg
+
+todo: change split size to 4,294,934,528 
