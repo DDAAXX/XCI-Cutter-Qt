@@ -33,3 +33,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     worker.h \
     xcifile.h
+
+DISTFILES += \
+    appicon.icns
+
+osx {
+ICON = appicon.icns
+}
