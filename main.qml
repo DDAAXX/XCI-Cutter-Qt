@@ -16,7 +16,7 @@ Window {
     maximumHeight: 330
     minimumWidth: 640
     maximumWidth: 640
-    title: qsTr("XCI Cutter v.0.3.alpha")
+    title: qsTr("XCI Cutter v.0.4.alpha")
 
     Button {
         id: btn_Batch

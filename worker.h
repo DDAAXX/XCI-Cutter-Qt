@@ -6,7 +6,7 @@
 
 #include "xcifile.h"
 
-#define _4GBFILE 4294967290
+#define _4GBFILE 4294934528
 
 class Worker : public QObject
 {
