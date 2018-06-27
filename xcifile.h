@@ -5,15 +5,13 @@
 #include <QFile>
 #include <QDataStream>
 
-#define ChunkSize  (quint64)((256 * 1024 ^ 3) - 1)
+#define ChunkSize  (quint64)(((8192 * 1024 ^ 3) - 1))
 
 class XCIFile : public QObject
 {
     Q_OBJECT
 public:
     explicit XCIFile(QObject *parent = nullptr);
-//    QDataStream * bw;
-//    QDataStream * br;
     QFile *InfileStream;
     QFile *OutfileStream;
 
@@ -22,8 +20,6 @@ signals:
 
 public slots:
     bool getFileOK() {return pFileOK;}
-//    QString getOutPath(){return pOutPath;}
-//    void setOutPath(QString val);
     QString getInPath(){return pInPath;}
     void setInPath(QString val);
 
@@ -48,7 +44,6 @@ private:
 
     quint64 pDataSize, pCartSize, pRealfileSize;
     QString pInPath;
-//  QString pOutPath;
     bool pFileOK;
 
     quint64 pChunkCount;

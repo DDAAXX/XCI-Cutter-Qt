@@ -85,6 +85,7 @@ void Worker::executeWork(ActionType act)
     QByteArray pad_check;
     QByteArray test;
     QByteArray pad_remainder;
+    quint64 chunkNum;
     bool error = false;
     bool split4GB = false;
 
@@ -114,7 +115,9 @@ void Worker::executeWork(ActionType act)
         }
 
         i = (m_SourceFile->getRealCartSize() - m_SourceFile->getDataSize());
-        remainder = i - (m_SourceFile->getChunkCount() * ChunkSize);
+        qDebug()<<i;
+        chunkNum = i / ChunkSize;
+        remainder = i - (chunkNum * ChunkSize);
         pad_remainder.resize(remainder);
         pad_remainder.fill(0xff);
 
@@ -122,16 +125,17 @@ void Worker::executeWork(ActionType act)
         m_SourceFile->setInPos(m_SourceFile->getDataSize());
 
         qDebug()<< m_SourceFile->getRealCartSize() << m_SourceFile->getDataSize();
-        qDebug()<< m_SourceFile->getChunkCount();
+        qDebug()<< m_SourceFile->getChunkCount() << ChunkSize;
+        qDebug()<< (m_SourceFile->getRealCartSize() - m_SourceFile->getDataSize()) << remainder;
 
         QMetaObject::invokeMethod(qmlObject, "setProgessMax",
-                                  Q_ARG(QVariant,m_SourceFile->getChunkCount())
+                                  Q_ARG(QVariant,chunkNum)
                                   );
 
         //Verify free space
         if (m_CheckFreeSpace)
         {
-            for (quint64 y = 0; y < m_SourceFile->getChunkCount(); y++)
+            for (quint64 y = 0; y < chunkNum; y++)
             {
                 if (m_QuitPending)
                 {
@@ -158,7 +162,7 @@ void Worker::executeWork(ActionType act)
             {
                 test.resize(pad_remainder.length());
                 m_SourceFile->InfileStream->read(test.data(),test.length());
-                //qDebug()<<test;
+                //qDebug()<<test.data();
                 if (test != pad_remainder)
                 {
                     error = true;
@@ -228,8 +232,6 @@ void Worker::executeWork(ActionType act)
                 createFile(m_SourceFile->InfileStream, m_SourceFile->getDataSize());
             }
         }
-
-
         break;
     case JOIN:
         //TODO

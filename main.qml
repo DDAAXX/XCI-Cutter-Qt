@@ -16,7 +16,7 @@ Window {
     maximumHeight: 330
     minimumWidth: 640
     maximumWidth: 640
-    title: qsTr("XCI Cutter v.0.4.alpha")
+    title: qsTr("XCI Cutter v.0.5.alpha")
 
     Button {
         id: btn_Batch
@@ -291,16 +291,6 @@ Window {
         value: 0
     }
 
-    CheckBox {
-        id: checkBox
-        x: 215
-        y: 51
-        text: qsTr("Split to 4GB parts")
-        Layout.fillWidth: true
-        Layout.preferredHeight: 21
-        Layout.preferredWidth: 168
-    }
-
     RowLayout {
         x: 10
         y: 24
@@ -348,19 +338,23 @@ Window {
         horizontalAlignment: Text.AlignHCenter
     }
 
-    CheckBox {
-        id: checkFreeSpace
+    RowLayout {
         x: 10
         y: 51
-        text: qsTr("Check free space before cut")
-        checked: true
-        Layout.preferredWidth: 168
-        Layout.preferredHeight: 21
-        Layout.fillWidth: true
-        enabled: true
 
-        onCheckedChanged: {
-            worker.setCheckFreeSpace(checked)
+        CheckBox {
+            id: checkFreeSpace
+            text: qsTr("Check free space before cut")
+            checked: true
+
+            onCheckedChanged: {
+                worker.setCheckFreeSpace(checked)
+            }
+        }
+
+        CheckBox {
+            id: checkBox
+            text: qsTr("Split to 4GB parts")
         }
     }
 
