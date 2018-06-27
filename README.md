@@ -6,4 +6,4 @@ At the moment this is an ALFA version, with only the cut function available (all
 
 To generate app redistributable, use command: /path/to/macdeployqt XCICutter.app  -verbose=3 -dmg
 
-todo: change split size to 4,294,934,528 
+done: change split size to 4,294,934,528 
