@@ -16,7 +16,7 @@ Window {
     maximumHeight: 330
     minimumWidth: 640
     maximumWidth: 640
-    title: qsTr("XCI Cutter v.0.5.alpha")
+    title: qsTr("XCI Cutter v.0.6-alpha")
 
     Button {
         id: btn_Batch
@@ -271,7 +271,9 @@ Window {
 
                 disableButtons()
 
-                worker.processClicked(Worker.PROCESS, rb_Cut.checked ? checkBox.checked ? Worker.CUT_SPLIT : Worker.CUT : Worker.JOIN)
+                worker.processClicked(Worker.PROCESS, rb_Cut.checked ? (checkBox.checked ? Worker.CUT_SPLIT : Worker.CUT) :
+                                                                       (rb_SplitOnly.checked ? Worker.SPLITONLY : Worker.JOIN)
+                                      )
             }
             else
             {
@@ -296,6 +298,8 @@ Window {
         y: 24
         spacing: 6.1
 
+        ExclusiveGroup { id: actionGroup }
+
         Label {
             id: label
             text: qsTr("Mode:")
@@ -305,10 +309,28 @@ Window {
             id: rb_Cut
             text: qsTr("Cut/Split")
             checked: true
+            exclusiveGroup: actionGroup
 
             onCheckedChanged: {
-                rb_Uncut.checked = !checked
                 checkBox.enabled = checked
+                checkFreeSpace.enabled = checked
+            }
+        }
+
+        RadioButton {
+            id: rb_SplitOnly
+            text: qsTr("Split Only")
+            exclusiveGroup: actionGroup
+
+            onCheckedChanged: {
+                if (checked)
+                {
+                    checkBox.enabled = false
+                    checkBox.checked = false
+
+                    checkFreeSpace.enabled = false
+                    checkFreeSpace.checked = false
+                }
             }
         }
 
@@ -316,9 +338,9 @@ Window {
             id: rb_Uncut
             text: qsTr("Uncut/Join")
             enabled: false
+            exclusiveGroup: actionGroup
 
             onCheckedChanged: {
-                rb_Cut.checked = !checked
                 if (checked)
                 {
                     checkBox.enabled = false
@@ -410,8 +432,6 @@ Window {
         btn_Source.enabled = true
         btn_Dest.enabled = true
         btn_Exit.enabled = true
-        checkFreeSpace.enabled = true
-        checkBox.enabled = rb_Cut.checked
     }
 
     function endProcess()

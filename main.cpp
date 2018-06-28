@@ -1,4 +1,7 @@
+#if Q_OS_LINUX
 #include <QApplication>
+#endif
+
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>

@@ -233,6 +233,54 @@ void Worker::executeWork(ActionType act)
             }
         }
         break;
+    case SPLITONLY:
+        //Cut
+    {
+        qDebug()<<"Ready to Split!";
+        QMetaObject::invokeMethod(qmlObject, "setProgessVal",
+                                  Q_ARG(QVariant,0)
+                                  );
+
+        QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                  Q_ARG(QVariant,"Splitting... Please wait...")
+                                  );
+
+        int a = 5;
+        while (a > 0) {
+            a--;
+            qApp->processEvents();
+            QThread::msleep(100);
+        }
+
+
+        QString filename = m_SourceFile->InfileStream->fileName();
+        int slashPos = filename.lastIndexOf("/");
+        filename = filename.mid(slashPos+1);
+        filename.chop(4);
+
+        if (m_SourceFile->getDataSize() > _4GBFILE)
+        {
+            int numFiles = m_SourceFile->getDataSize() / _4GBFILE;
+
+            if (m_SourceFile->getDataSize() - (numFiles * _4GBFILE) > 0)
+            {
+                numFiles++;
+            }
+
+            createFile(m_SourceFile->InfileStream, m_SourceFile->getDataSize(), numFiles, true);
+        }
+        else
+        {
+            qDebug()<<"Filse size < 4Gb! Aborting!";
+            QMetaObject::invokeMethod(qmlObject, "setMsgBox",
+                                      Q_ARG(QVariant,"Filse size < 4Gb! Aborting!")
+                                      );
+            QMetaObject::invokeMethod(qmlObject, "abortOp",
+                                      Q_ARG(QVariant,false)
+                                      );
+        }
+    }
+        break;
     case JOIN:
         //TODO
         break;
@@ -241,7 +289,7 @@ void Worker::executeWork(ActionType act)
     }
 }
 
-void Worker::createFile(QFile *src, quint64 dataSize, qint8 numFiles)
+void Worker::createFile(QFile *src, quint64 dataSize, qint8 numFiles, bool splitOnly)
 {
     // File open a success
     if (src->isOpen() || src->open(QIODevice::ReadOnly)) {
@@ -257,7 +305,14 @@ void Worker::createFile(QFile *src, quint64 dataSize, qint8 numFiles)
         }
         else
         {
-            destName.append("_trimmed.xc");
+            if (splitOnly)
+            {
+                destName.append(".xc");
+            }
+            else
+            {
+                destName.append("_trimmed.xc");
+            }
         }
 
         for (int i = 0; i < numFiles; i++)

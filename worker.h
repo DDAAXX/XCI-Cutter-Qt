@@ -18,7 +18,8 @@ public:
         NO_ACT = 0,
         CUT,
         CUT_SPLIT,
-        JOIN
+        JOIN,
+        SPLITONLY
     };
     Q_ENUMS(ActionType)
 
@@ -45,7 +46,7 @@ public slots:
 
 private:
     void executeWork(ActionType act);
-    void createFile(QFile *src, quint64 dataSize, qint8 numFiles = 1);
+    void createFile(QFile *src, quint64 dataSize, qint8 numFiles = 1, bool splitOnly = false);
 
     QString m_SourcePath;
     QString m_DestFolder;
