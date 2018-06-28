@@ -1,5 +1,7 @@
-#if Q_OS_LINUX
-#include <QApplication>
+#include <QtGlobal>
+
+#ifdef Q_OS_LINUX
+    #include <QApplication>
 #endif
 
 #include <QGuiApplication>
