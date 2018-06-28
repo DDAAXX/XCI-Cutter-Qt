@@ -1,4 +1,9 @@
 QT += quick
+
+linux {
+QT += widgets
+}
+
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -35,7 +40,8 @@ HEADERS += \
     xcifile.h
 
 DISTFILES += \
-    appicon.icns
+    appicon.icns \
+    DejaVuSans.ttf
 
 osx {
 ICON = appicon.icns

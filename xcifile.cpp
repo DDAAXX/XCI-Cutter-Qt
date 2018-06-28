@@ -74,7 +74,7 @@ void XCIFile::ReadSizes()
             pCartSize = 30464;
             break;
         default:
-            qDebug()<<"The source file doesn't look like an XCI file", "Can't determine cartridge size!";
+            qDebug()<<"The source file doesn't look like an XCI file" << "Can't determine cartridge size!";
             break;
         }
 
